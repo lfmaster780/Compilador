@@ -1,0 +1,190 @@
+!=======================================================
+
+<Decls> ::= <Decl> <Decls>
+          |
+
+<Decl>  ::= <Func Decl>
+          | <Var Decl>
+
+! ===================================================================
+! Function  Declaration
+! ===================================================================
+
+<Func Decl>  ::= <ID> "return" <Type> '(' <Params>  ')' <Block>
+               | <ID> '(' ')' <Block>
+
+
+<Params>     ::= <Param> ',' <Params>
+               | <Param>
+
+<Param>      ::= const <Type> ID
+               |       <Type> ID
+
+
+! ===================================================================
+! Variable Declaration
+! ===================================================================
+
+<Var Decl>     ::= <Var>';'
+
+<Var>      ::= <ID> <Type>
+
+! ===================================================================
+! Types
+! ===================================================================
+
+<Type>     ::= <Base>
+
+<Base>     ::= <Scalar>
+
+<Scalar>   ::= void
+             | int
+             | bool
+
+
+! ===================================================================
+! Statements
+! ===================================================================
+
+<Stm>        ::= <Var Decl>
+               | Id <Op Assign> <Expr>
+               | if '(' <Expr> ')' <Stm> <Post If>
+               | while '(' <Expr> ')' <Stm>
+               | <Normal Stm>
+
+<Post If>  ::= else <Stm>
+             |
+
+<Normal Stm> ::= do <Stm> while '(' <Expr> ')'
+               | <Block>
+               | <Expr> ';'
+               | break ';'
+               | continue ';'
+               | return <Expr> ';'
+               | ';'
+
+
+<Arg>       ::= <Expr>
+              |
+
+<Block>     ::= '{' <Stm List> '}'
+
+<Stm List>  ::=  <Stm> <Stm List>
+              |
+
+***
+<Expr> ::= <ID> <Operator> <ExprID>
+         | <Numeric> <Operator> <Numeric> <Expr>
+         |
+
+<ExprID> ::= <ID> <Expr>
+           | <Numeric> <Expr>
+           | <Bool> <Expr>
+***
+! ===================================================================
+! Operators
+! ===================================================================
+<Operator> ::= <Op Assign>
+             | <Op or>
+             | <Op And>
+             | <Op Equate>
+             | <Op Compare>
+             | <Op Add>
+             | <Op Mult>
+
+<Op Assign> ::= '='
+
+<Op Or>      ::= '||'
+
+<Op And>     ::= '&&'
+
+<Op Equate>  ::= '=='
+               | '!='
+
+<Op Compare> ::= '<'
+               | '>'
+               | '<='
+               | '>='
+
+<Op Add>     ::= '+'
+               | '-'
+
+<Op Mult>    ::= '*'
+               | '/'
+               | '%'
+
+<ID> :: = <Letter><Word>
+
+<Word> ::= <Letter><Word>
+         | <Digit><Word>
+         |
+
+<Bool> ::= true
+         | false
+<Numeric> ::= <Digit><Numeric>
+          |
+
+
+<Digit> ::= "0"
+           | "1"
+           | "2"
+           | "3"
+           | "4"
+           | "5"
+           | "6"
+           | "7"
+           | "8"
+           | "9"
+
+<Letter> ::= "a"
+          | "b"
+          | "c"
+          | "d"
+          | "e"
+          | "f"
+          | "g"
+          | "h"
+          | "i"
+          | "j"
+          | "k"
+          | "l"
+          | "m"
+          | "n"
+          | "o"
+          | "p"
+          | "q"
+          | "r"
+          | "s"
+          | "t"
+          | "u"
+          | "v"
+          | "w"
+          | "x"
+          | "y"
+          | "z"
+          | "A"
+          | "B"
+          | "C"
+          | "D"
+          | "E"
+          | "F"
+          | "G"
+          | "H"
+          | "I"
+          | "J"
+          | "K"
+          | "L"
+          | "M"
+          | "N"
+          | "O"
+          | "P"
+          | "Q"
+          | "R"
+          | "S"
+          | "T"
+          | "U"
+          | "V"
+          | "W"
+          | "X"
+          | "Y"
+          | "Z"
