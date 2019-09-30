@@ -33,14 +33,9 @@
 ! Types
 ! ===================================================================
 
-<Type>     ::= <Base>
-
-<Base>     ::= <Scalar>
-
-<Scalar>   ::= void
+<Type>     ::= void
              | int
              | bool
-
 
 ! ===================================================================
 ! Statements
@@ -55,8 +50,7 @@
 <Post If>  ::= else <Stm>
              |
 
-<Normal Stm> ::= do <Stm> while '(' <Expr> ')'
-               | <Block>
+<Normal Stm> ::= <Block>
                | <Expr> ';'
                | break ';'
                | continue ';'
@@ -74,7 +68,7 @@
 
 ***
 <Expr> ::= <ID> <Operator> <ExprID>
-         | <Numeric> <Operator> <Numeric> <Expr>
+         | <Numeric> <OpNA> <Numeric> <Expr>
          |
 
 <ExprID> ::= <ID> <Expr>
@@ -85,12 +79,14 @@
 ! Operators
 ! ===================================================================
 <Operator> ::= <Op Assign>
-             | <Op or>
-             | <Op And>
-             | <Op Equate>
-             | <Op Compare>
-             | <Op Add>
-             | <Op Mult>
+             | <OpNA>
+
+<OpNA> ::=  <Op or>
+| <Op And>
+| <Op Equate>
+| <Op Compare>
+| <Op Add>
+| <Op Mult>
 
 <Op Assign> ::= '='
 
