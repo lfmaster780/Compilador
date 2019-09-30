@@ -87,12 +87,15 @@
 | <Op Compare>
 | <Op Add>
 | <Op Mult>
+| <Op Not>
 
 <Op Assign> ::= '='
 
 <Op Or>      ::= '||'
 
 <Op And>     ::= '&&'
+
+<Op Not>    ::= '!'
 
 <Op Equate>  ::= '=='
                | '!='
