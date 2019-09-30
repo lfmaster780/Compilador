@@ -1,46 +1,3 @@
-from enum import Enum
-
-class TokenType(Enum):
-    LPAREN = "("
-    RPAREN = ")"
-    LBRACE = "{"
-    RBRACE = "}"
-    PONTOVIRGULA = ";"
-    VIRGULA = ","
-    IF="if"
-    ELSE="else"
-    WHILE="while"
-    RETURN="return"
-    TYPE_BOOL="bool"
-    TYPE_INT="int"
-    TYPE_VOID="void"
-    BREAK="break"
-    CONTINUE="continue"
-    TRUE="true"
-    FALSE="false"
-
-    ATRIBUICAO = '='
-
-    OR = '||'
-
-    AND = '&&'
-
-    IGUAL = '==' #!=
-
-    COMPARACAO= '<'
-                   # | '>'
-                   # | '<='
-                   # | '>='
-
-    SOMA = '+'
-                   # | '-'
-
-    MULT = '*'
-                   # | '/'
-                   # | '%'
-
-    EOF = ""
-
 class Token:
 
     def __init__(self, type, lexeme, literal, line):
@@ -65,10 +22,89 @@ class Scanner(object):
     def isAtEnd(self):
         return self.current >= len(self.texto)
 
-    def scanTokens(self) {
-        while (not isAtEnd()):
+    def scanTokens(self):
+        while (not self.isAtEnd()):
             self.start = self.current
-            scanToken()
+            self.scanToken()
 
-        self.tokens.append(Token(EOF, "", None, line))
+        self.tokens.append(Token("EOF", "", None, self.line))
         return self.tokens
+
+    def scanToken(self):
+        c = self.advance();
+        if c =='(':
+            self.addToken("LPAREN")
+        elif c ==')':
+            self.addToken("RPAREN")
+        elif c =='{':
+            self.addToken("LBRACE")
+        elif c =='}':
+            self.addToken("RBRACE")
+        elif c ==',':
+            self.addToken("VIRGULA")
+        elif c =='+' or c == '-':
+            self.addToken("PLUS")
+        elif c ==';':
+            self.addToken("PONTOVIRGULA")
+        elif c =='*':
+            self.addToken("MULT")
+        elif c == '/':
+            self.addToken("DIV")
+        elif c == ("%"):
+            self.addToken("RESTO")
+        elif c == '=':
+            if self.match('='):
+                self.addToken("IGUAL")
+            else:
+                self.addToken("ATRIBUICAO")
+
+        elif c == '!':
+            if self.match("="):
+                self.addToken("DIFERENTE")
+            else:
+                self.addToken("NOT")
+
+        elif c == '<':
+            if self.match("="):
+                self.addToken("MENORIGUAL")
+            else:
+                self.addToken("MENOR")
+        elif c == '>':
+            if self.match("="):
+                self.addToken("MAIORIGUAL")
+            else:
+                self.addToken("MAIOR")
+        elif c == '&' and self.match('&'):
+            self.addToken("AND")
+        elif c == '|' and self.match('|'):
+            self.addToken("OR")
+        elif c == " ":
+            None
+        else:
+            print("Caractere", c, "invalido na linha", self.line)
+            raise Exception()
+
+    def match(self,expected):
+        if self.isAtEnd():
+            return False
+        if (self.texto[self.current] != expected):
+            return False;
+
+        self.current+=1
+        return True
+
+    def advance(self):
+        self.current+=1
+        return self.texto[self.current - 1]
+
+    def addToken(self, type, literal = type):
+        text = self.texto[self.start:self.current]
+        self.tokens.append(Token(type, text, literal, self.line))
+
+
+
+ent = input()
+scan = Scanner(ent)
+resultado = scan.scanTokens()
+for k in resultado:
+    print(k)
