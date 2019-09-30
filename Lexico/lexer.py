@@ -28,6 +28,31 @@ class Scanner(object):
             self.scanToken()
 
         self.tokens.append(Token("EOF", "", None, self.line))
+        for k in self.tokens:
+            if k.tipo == "ID":
+                if k.lexema == "while":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "for":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "return":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "if":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "else":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "bool":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "int":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "void":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "break":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "continue":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "true" or k.lexema == "false":
+                    k.tipo = "BOOLEAN"
+
         return self.tokens
 
     def scanToken(self):
@@ -78,8 +103,14 @@ class Scanner(object):
             self.addToken("AND")
         elif c == '|' and self.match('|'):
             self.addToken("OR")
-        elif c == " ":
+        elif c == " " or c == '\t' or c == '\r':
             None
+        elif c == '\n':
+            self.line+=1
+        elif self.isDigit(c):
+            self.number()
+        elif self.isAlpha(c):
+            self.identifier()
         else:
             print("Caractere", c, "invalido na linha", self.line)
             raise Exception()
@@ -97,10 +128,37 @@ class Scanner(object):
         self.current+=1
         return self.texto[self.current - 1]
 
-    def addToken(self, type, literal = type):
+    def addToken(self, type, literal = None):
         text = self.texto[self.start:self.current]
         self.tokens.append(Token(type, text, literal, self.line))
 
+
+    def peek(self):
+        if (self.isAtEnd()):
+            return '\0'
+
+        return self.texto[self.current]
+
+    def isDigit(self,c):
+      return c >= '0' and c <= '9'
+
+    def number(self):
+        while (self.isDigit(self.peek())):
+            self.advance()
+
+        self.addToken("NUMERO",int(self.texto[self.start:self.current]))
+
+    def identifier(self):
+        while (self.isAlphaNumeric(self.peek())):
+            self.advance()
+
+        self.addToken("ID",str(self.texto[self.start:self.current]))
+
+    def isAlpha(self,c):
+        return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_'
+
+    def isAlphaNumeric(self, c):
+        return self.isAlpha(c) or self.isDigit(c)
 
 
 ent = input()
