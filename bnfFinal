@@ -1,0 +1,53 @@
+<Decls>-> <Decl> <Decls> | EPSILON
+
+<Decl>-> <Func_Decl> | <Var_Decl>
+
+<Func_Decl>-> fun ID return <Type> ( <Params_I>  ) <Block>
+
+<Params_I>-> <Params> | EPSILON
+
+<Params>-> <Param> , <Params> | <Param>
+
+<Param>-> <Type> ID
+
+<Var_Decl>-> <Var> ;
+
+<Var>-> ID <Type>
+
+<Type>-> void | int | bool
+
+<Stm>-> <Var_Decl> | ID <Op_Assign> <Expr> | if ( <Expr> ) <Stm> <Post_If> | while ( <Expr> ) <Stm>  | <Normal_Stm>
+
+<Post_If>-> else <Stm> | EPSILON
+
+<Normal_Stm>-> <Block> | <Expr> ; | break ; | continue ; | return <Expr> ; | print ( ID );
+
+<Block>-> { <Stm_List> }
+
+<Stm_List>->  <Stm> <Stm_List> | EPSILON
+
+<Expr>-> ID <Operator> <ExprID> | <Numeric> <OpNA> <Numeric> <Expr> | EPSILON
+
+<ExprID> -> ID <Expr> | <Numeric> <Expr> | <Bool> <Expr>
+
+<Operator>-> <Op_Assign> | <OpNA>
+
+<OpNA>-> <Op_or> | <Op_And> | <Op_Equate> | <Op_Compare> | <Op_Add> | <Op_Mult> | <Op_Not>
+
+<Op_Assign>-> =
+
+<Op_or>-> ||
+
+<Op_And>-> &&
+
+<Op_Not>-> !
+
+<Op_Equate>-> == | !=
+
+<Op_Compare>-> < | > | <= | >=
+
+<Op_Add>-> + | -
+
+<Op_Mult>-> * | / | %
+
+<Bool>-> true | false
