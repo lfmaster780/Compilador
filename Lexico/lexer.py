@@ -50,6 +50,12 @@ class Scanner(object):
                     k.tipo = k.lexema.upper()
                 if k.lexema == "continue":
                     k.tipo = k.lexema.upper()
+                if k.lexema == "return":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "fun":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "print":
+                    k.tipo = k.lexema.upper()
                 if k.lexema == "true" or k.lexema == "false":
                     k.tipo = "BOOLEAN"
 
@@ -67,8 +73,10 @@ class Scanner(object):
             self.addToken("RBRACE")
         elif c ==',':
             self.addToken("VIRGULA")
-        elif c =='+' or c == '-':
-            self.addToken("PLUS")
+        elif c =='+':
+            self.addToken("SOMA")
+        elif c == '-':
+            self.addToken("SUB")
         elif c ==';':
             self.addToken("PONTOVIRGULA")
         elif c =='*':
@@ -160,9 +168,10 @@ class Scanner(object):
     def isAlphaNumeric(self, c):
         return self.isAlpha(c) or self.isDigit(c)
 
-
+"""
 ent = input()
 scan = Scanner(ent)
 resultado = scan.scanTokens()
 for k in resultado:
     print(k)
+"""
