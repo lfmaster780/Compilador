@@ -1,15 +1,28 @@
+class Escopo():
+    def __init__(self, id, escopomaior):
+        self.id = id
+        self.escopomaior = escopomaior
+        self.aberto = True
+    def fecharEscopo(self):
+        self.aberto = False
+
 class Parser():
 
     def __init__(self):
 
         self.tokenAtual = 0
         self.tokens = []
-        self.escopo = False
-        self.tabelaSimbolos = []
+        #self.escopo = False
+        self.tabelaSimbolos = [ ]
+        self.escopoatual = 0
+        self.escopomax = 0
+        self.escopos = []
         self.erroSintatico = False
 
     def iniciar(self,tokenlist):
         self.erroSintatico = False
+        novoescopo = Escopo(self.escopoatual, -1)
+        self.escopos.append(novoescopo)
         self.tokens = tokenlist
         self.decls()
 
@@ -22,6 +35,8 @@ class Parser():
         print("Obteve",self.tokens[self.tokenAtual])
 
         self.erroSintatico = True
+
+        print(self.tokenAtual)
 
     def type(self):
         if self.match_token("VOID") or self.match_token("INT") or self.match_token("BOOL"):
@@ -54,24 +69,28 @@ class Parser():
             self.var_decl()
 
     def func_decl(self):
+        lista = []
         if self.match_token("FUN"):
+            lista.append("FUN")
             self.consumir()
         else:
             self.erro(["FUN"])
             return
-
         if self.match_token("ID"):
+            lista.append(self.tokens[self.tokenAtual].lexema)
             self.consumir()
 
             if self.match_token("RETURN"):
                 self.consumir()
                 if self.type():
+                    lista.append(self.tokens[self.tokenAtual].tipo)
                     self.consumir()
                 else:
                     return
                 if self.match_token("LPAREN"):
                     self.consumir()
-                    self.params()
+                    listaparametros = self.params()
+                    lista.append(listaparametros)
                 else:
                     self.erro("LPAREN")
 
@@ -80,12 +99,15 @@ class Parser():
 
         else:
             self.erro(["ID"])
+        self.tabelaSimbolos.append(lista)
 
     def params(self):
+        listaparams = []
         if self.match_token("RPAREN"):
             self.consumir()
             self.block()
         elif self.type():
+            listaparams.append(self.tokens[self.tokenAtual].tipo)
             self.param()
             if self.match_token("VIRGULA"):
                 self.consumir()
@@ -96,6 +118,7 @@ class Parser():
                 self.erro(["VIRGULA","RPAREN"])
         else:
             self.erro(["RPAREN"])
+        return listaparams
 
     def param(self):
         if self.type():
@@ -107,10 +130,31 @@ class Parser():
 
     def block(self):
         if self.match_token("LBRACE"):
+            if(self.escopoatual+1 > self.escopomax):
+                if(self.escopos[self.escopoatual].aberto):
+                    novoescopo = Escopo(self.escopoatual+1, self.escopoatual)
+                    self.escopomax = self.escopoatual+1
+                    self.escopoatual += 1
+                else:
+                    novoescopo = Escopo(self.escopoatual+1, -1)
+                    self.escopomax = self.escopoatual+1
+                    self.escopoatual += 1
+            else:
+                if(self.escopos[self.escopoatual].aberto):
+                    novoescopo = Escopo(self.escopomax+1, self.escopoatual)
+                    self.escopomax = self.escopomax+1
+                    self.escopoatual = self.escopomax
+                else:
+                    novoescopo = Escopo(self.escopoatual+1, -1)
+                    self.escopomax = self.escopomax+1
+                    self.escopoatual = self.escopomax
+            self.escopos.append(novoescopo)
             self.consumir()
             self.stm_list()
 
             if self.match_token("RBRACE"):
+                self.escopos[self.escopoatual].fecharEscopo()
+                self.escopoatual = self.escopos[self.escopoatual].escopomaior + 1
                 self.consumir()
             else:
                 self.erro(["RBRACE"])
@@ -216,9 +260,13 @@ class Parser():
             self.erro(["RBRACE","ID","WHILE","PRINT","LBRACE","RETURN","IF","BREAK","CONTINUE"])
 
     def var_decl(self):
+        lista = []
         if self.match_token("ID"):
+            lista.append("VAR")
+            lista.append(self.tokens[self.tokenAtual].lexema)
             self.consumir()
             if self.type():
+                lista.append(self.tokens[self.tokenAtual].tipo)
                 self.consumir()
                 if self.match_token("PONTOVIRGULA"):
                     self.consumir()
@@ -227,6 +275,8 @@ class Parser():
 
         else:
             self.erro(["ID"])
+        lista.append(self.escopos[self.escopoatual])
+        self.tabelaSimbolos.append(lista)
 
     def post_if(self):
         if self.match_token("ELSE"):
@@ -237,7 +287,7 @@ class Parser():
         if self.match_token("NUMERO"):
             self.consumir()
             self.op_na()
-            if self.match_token("NUMERO") and not self.erroSintatico():
+            if self.match_token("NUMERO") and not self.erroSintatico:
                 self.consumir()
                 self.expr()
 
@@ -247,11 +297,12 @@ class Parser():
         elif self.match_token("ID"):
             self.consumir()
             self.operator()
-            if not self.erroSintatico():
+            if not self.erroSintatico:
                 self.expr_id()
 
         else:
-            self.erro(["NUMERO","ID"])
+            print("")
+            #self.erro(["NUMERO","ID"])
 
     def expr_id():
         if self.match_token("BOOLEAN"):
