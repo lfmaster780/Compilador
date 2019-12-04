@@ -45,6 +45,13 @@ class Parser():
             self.erro(["VOID","INT","BOOL"])
             return False
 
+    def typeID(self):
+        if self.match_token("INT") or self.match_token("BOOL"):
+            return True
+        else:
+            self.erro(["INT","BOOL"])
+            return False
+
     def match_token(self, t):
         return self.tokens[self.tokenAtual].tipo == t
 
@@ -106,7 +113,7 @@ class Parser():
         if self.match_token("RPAREN"):
             self.consumir()
             self.block()
-        elif self.type():
+        elif self.typeID():
             listaparams.append(self.tokens[self.tokenAtual].tipo)
             self.param()
             if self.match_token("VIRGULA"):
@@ -121,7 +128,7 @@ class Parser():
         return listaparams
 
     def param(self):
-        if self.type():
+        if self.typeID():
             self.consumir()
             if self.match_token("ID"):
                 self.consumir()
@@ -204,7 +211,7 @@ class Parser():
             self.consumir()
             if self.match_token("LPAREN"):
                 self.consumir()
-                self.expr()#####
+                self.expr()
                 if self.match_token("RPAREN"):
                     self.consumir()
                     self.stm()
@@ -246,7 +253,7 @@ class Parser():
             else:
                 self.erro(["PONTOVIRGULA"])
 
-        elif self.match_token("RETURN"):
+        elif self.match_token("RETURN"):########
             self.consumir()
             self.expr()
             if self.match_token("PONTOVIRGULA"):
@@ -265,7 +272,7 @@ class Parser():
             lista.append("VAR")
             lista.append(self.tokens[self.tokenAtual].lexema)
             self.consumir()
-            if self.type():
+            if self.typeID():
                 lista.append(self.tokens[self.tokenAtual].tipo)
                 self.consumir()
                 if self.match_token("PONTOVIRGULA"):
@@ -289,7 +296,9 @@ class Parser():
             self.op_na()
             if self.match_token("NUMERO") and not self.erroSintatico:
                 self.consumir()
-                self.expr()
+                if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                    self.op_na()
+                    self.expr()
 
             else:
                 self.erro(["NUMERO"])
@@ -300,20 +309,20 @@ class Parser():
             if not self.erroSintatico:
                 self.expr_id()
 
-        else:
-            print("")
-            #self.erro(["NUMERO","ID"])
 
     def expr_id():
         if self.match_token("BOOLEAN"):
             self.consumir()
-            self.expr()
+            if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.expr()
         elif self.match("NUMERO"):
             self.consumir()
-            self.expr()
+            if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.expr()
         elif self.match("ID"):
             self.consumir()
-            self.expr()
+            if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.expr()
         else:
             self.erro(["BOOLEAN","ID","NUMERO"])
 

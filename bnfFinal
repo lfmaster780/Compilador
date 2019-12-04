@@ -8,13 +8,14 @@
 
 <Params>-> <Param> , <Params> | <Param>
 
-<Param>-> <Type> ID
+<Param>-> <TypeID> ID
 
 <Var_Decl>-> <Var> ;
 
 <Var>-> ID <Type>
 
 <Type>-> void | int | bool
+<TypeID>-> int | bool
 
 <Stm>-> <Var_Decl> | ID <Op_Assign> <Expr> | if ( <Expr> ) <Stm> <Post_If> | while ( <Expr> ) <Stm>  | <Normal_Stm>
 
