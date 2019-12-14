@@ -18,6 +18,9 @@ class Parser():
         self.escopomax = 0
         self.escopos = []
         self.erroSintatico = False
+        self.tipoEsperado = ""
+        self.tipoAtual = ""
+        self.exprAtual = []
 
     def iniciar(self,tokenlist):
         self.erroSintatico = False
@@ -25,6 +28,30 @@ class Parser():
         self.escopos.append(novoescopo)
         self.tokens = tokenlist
         self.decls()
+
+    def buscar(lexema):
+        for k in range(len(self.tabelaSimbolos)):
+            if self.tabelaSimbolos[k][1] == lexema:
+                return k
+
+        return -1
+
+    def gerartipo():
+        chave=self.exprAtual[0]
+        resultado = "VOID"
+        for k in range(0,len(self.exprAtual)-2,2):
+            op = self.exprAtual[k+1]
+            tipo2 = self.exprAtual[k+2]
+            if chave == tipo2:
+                if op == "OPINT":
+                    resultado = "INT"
+                else:
+                    resultado = "BOOL"
+            else:
+                "INVALIDO"
+            chave = resultado
+
+        return resultado
 
     def erro(self,l):
         print("Erro Sintatico")
@@ -177,18 +204,50 @@ class Parser():
         else:
             self.erro(["RBRACE","ID","WHILE","PRINT","LBRACE","RETURN","IF","BREAK","CONTINUE"])
 
+    def paramC(self):
+        listaparams = []
+        if self.match_token("RPAREN"):
+            self.consumir()
+        if self.match_token("ID"):
+            self.consumir()
+            self.paramC()
+        if self.match_token("VIRGULA"):
+            self.consumir()
+            self.paramC()
+        elif self.match_token("RPAREN"):
+            self.paramC()
+        elif self.match_token("NUMERO"):
+            self.consumir()
+            self.paramC()
+        else:
+            self.erro(["VIRGULA","RPAREN","ID"])
+        return listaparams
+
     def stm(self):
         if self.match_token("ID"):
             if self.tokens[self.tokenAtual+1].tipo == "ATRIBUICAO":
+                index = buscar(self.tokens[self.tokenAtual].lexema)#$$
+                self.tipoEsperado = self.tabelaSimbolos[index][2]
                 self.consumir()
                 if self.match_token("ATRIBUICAO"):
                     self.consumir()
+                    self.exprAtual = [] #Inicio da expressao
                     self.expr()#################
-            elif self.tokens[self.tokenAtual+1].tipo == "VOID" or self.tokens[self.tokenAtual+1].tipo == "INT" or self.tokens[self.tokenAtual+1].tipo == "BOOL":
+                    self.tipoAtual = gerartipo(self.exprAtual)
+                    if self.tipoEsperado != self.tipoAtual:
+                        print("Erro Semantico")
+                        print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                        self.erro([])
+            elif self.tokens[self.tokenAtual+1].tipo == "INT" or self.tokens[self.tokenAtual+1].tipo == "BOOL":
                 self.var_decl()
+            elif self.tokens[self.tokenAtual+1].tipo == "LPAREN":
+                self.consumir()
+                self.paramC()
             else:
+                self.exprAtual = [] #Inicio da expressao
                 self.expr()
                 if self.match_token("PONTOVIRGULA"):
+                    self.tipoAtual = gerartipo(self.exprAtual)
                     self.consumir()
                 else:
                     self.erro(["PONTOVIRGULA"])
@@ -197,7 +256,14 @@ class Parser():
             self.consumir()
             if self.match_token("LPAREN"):
                 self.consumir()
+                self.tipoEsperado = "BOOL"
+                self.exprAtual = []
                 self.expr()#####
+                self.tipoAtual = gerartipo(self.exprAtual)
+                if self.tipoAtual != self.tipoEsperado:
+                    print("Erro Semantico")
+                    print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                    self.erro([])
                 if self.match_token("RPAREN"):
                     self.consumir()
                     self.stm()
@@ -211,7 +277,14 @@ class Parser():
             self.consumir()
             if self.match_token("LPAREN"):
                 self.consumir()
-                self.expr()
+                self.tipoEsperado = "BOOL"
+                self.exprAtual = []
+                self.expr()#####
+                self.tipoAtual = gerartipo(self.exprAtual)
+                if self.tipoAtual != self.tipoEsperado:
+                    print("Erro Semantico")
+                    print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                    self.erro([])
                 if self.match_token("RPAREN"):
                     self.consumir()
                     self.stm()
@@ -224,7 +297,7 @@ class Parser():
             self.consumir()
             if self.match_token("LPAREN"):
                 self.consumir()
-                if self.match_token("ID"):
+                if self.match_token("ID") or self.match_token("NUMERO"):
                     self.consumir()
                     if self.match_token("RPAREN"):
                         self.consumir()
@@ -255,7 +328,14 @@ class Parser():
 
         elif self.match_token("RETURN"):########
             self.consumir()
-            self.expr()
+            self.tipoEsperado = ""
+            self.exprAtual = []
+            self.expr()#####
+            self.tipoAtual = gerartipo(self.exprAtual)
+            if self.tipoAtual != self.tipoEsperado:
+                print("Erro Semantico")
+                print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                self.erro([])
             if self.match_token("PONTOVIRGULA"):
                 self.consumir()
             else:
@@ -293,19 +373,23 @@ class Parser():
     def expr(self):
         if self.match_token("NUMERO"):
             self.consumir()
+            self.exprAtual.append("INT")
             self.op_na()
             if self.match_token("NUMERO") and not self.erroSintatico:
                 self.consumir()
-                if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.exprAtual.append("INT")
+                if self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                     self.op_na()
                     self.expr()
-
+                else:
+                    self.erro(["OPERADOR"])
             else:
                 self.erro(["NUMERO"])
 
         elif self.match_token("ID"):
             self.consumir()
-            self.operator()
+            self.exprAtual.append(self.tabelaSimbolos[buscar(self.tokenAtual.lexema)][2].upper())
+            self.op_na()
             if not self.erroSintatico:
                 self.expr_id()
 
@@ -314,20 +398,24 @@ class Parser():
         if self.match_token("BOOLEAN"):
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.op_na()
                 self.expr()
         elif self.match("NUMERO"):
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.op_na()
                 self.expr()
         elif self.match("ID"):
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
+                self.op_na()
                 self.expr()
         else:
             self.erro(["BOOLEAN","ID","NUMERO"])
 
     def operator(self):
         if self.match_token("ATRIBUICAO"):
+            self.exp
             self.consumir()
 
         elif self.match_token("SOMA"):
@@ -377,45 +465,59 @@ class Parser():
 
     def op_na(self):
         if self.match_token("SOMA"):
+            self.exprAtual.append("OPINT")
             self.consumir()
 
         elif self.match_token("MULT"):
+            self.exprAtual.append("OPINT")
             self.consumir()
 
         elif self.match_token("RESTO"):
+            self.exprAtual.append("OPINT")
             self.consumir()
 
         elif self.match_token("DIV"):
+            self.exprAtual.append("OPINT")
             self.consumir()
 
         elif self.match_token("NOT"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("DIFERENTE"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("IGUAL"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("AND"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("OR"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("MENOR"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("MENORIGUAL"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("MAIOR"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("MAIORIGUAL"):
+            self.exprAtual.append("OPBOOL")
             self.consumir()
 
         elif self.match_token("SUB"):
+            self.exprAtual.append("OPINT")
             self.consumir()
 
         else:
