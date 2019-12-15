@@ -1,189 +1,53 @@
-!=======================================================
+<Decls>-> <Decl> <Decls> | EPSILON
 
-<Decls> ::= <Decl> <Decls>
-          |
+<Decl>-> <Func_Decl> | <Var_Decl>
 
-<Decl>  ::= <Func Decl>
-          | <Var Decl>
+<Func_Decl>-> fun ID return <Type> ( <Params_I>  ) <Block>
 
-! ===================================================================
-! Function  Declaration
-! ===================================================================
+<Params_I>-> <Params> | EPSILON
 
-<Func Decl>  ::= <ID> "return" <Type> '(' <Params>  ')' <Block>
-               | <ID> '(' ')' <Block>
+<Params>-> <Param> , <Params> | <Param>
 
+<Param>-> <Type> ID
 
-<Params>     ::= <Param> ',' <Params>
-               | <Param>
+<Var_Decl>-> <Var> ;
 
-<Param>      ::= const <Type> ID
-               |       <Type> ID
+<Var>-> ID <Type>
 
+<Type>-> void | int | bool
 
-! ===================================================================
-! Variable Declaration
-! ===================================================================
+<Stm>-> <Var_Decl> | ID <Op_Assign> <Expr> | if ( <Expr> ) <Stm> <Post_If> | while ( <Expr> ) <Stm>  | <Normal_Stm> |
 
-<Var Decl>     ::= <Var>';'
+<Post_If>-> else <Stm> | EPSILON
 
-<Var>      ::= <ID> <Type>
+<Normal_Stm>-> <Block> | <Expr> ; | break ; | continue ; | return <Expr> ; | print ( ID );
 
-! ===================================================================
-! Types
-! ===================================================================
+<Block>-> { <Stm_List> }
 
-<Type>     ::= void
-             | int
-             | bool
+<Stm_List>->  <Stm> <Stm_List> | EPSILON
 
-! ===================================================================
-! Statements
-! ===================================================================
+<Expr>-> ID <Operator> <ExprID> | <Numeric> <OpNA> <Numeric> <Expr> | <Numeric> <OpNA> <Numeric>
 
-<Stm>        ::= <Var Decl>
-               | Id <Op Assign> <Expr>
-               | if '(' <Expr> ')' <Stm> <Post If>
-               | while '(' <Expr> ')' <Stm>
-               | <Normal Stm>
+<ExprID> -> ID <Op_NA> <Expr> | <Numeric> <Op_NA> <Expr> | <Bool> <Op_NA> <Expr> | ID | <Numeric> | <Bool>
 
-<Post If>  ::= else <Stm>
-             |
+<Operator>-> <Op_Assign> | <OpNA>
 
-<Normal Stm> ::= <Block>
-               | <Expr> ';'
-               | break ';'
-               | continue ';'
-               | return <Expr> ';'
-               | ';'
+<OpNA>-> <Op_or> | <Op_And> | <Op_Equate> | <Op_Compare> | <Op_Add> | <Op_Mult> | <Op_Not>
 
+<Op_Assign>-> =
 
-<Arg>       ::= <Expr>
-              |
+<Op_or>-> or
 
-<Block>     ::= '{' <Stm List> '}'
+<Op_And>-> &&
 
-<Stm List>  ::=  <Stm> <Stm List>
-              |
+<Op_Not>-> !
 
-***
-<Expr> ::= <ID> <Operator> <ExprID>
-         | <Numeric> <OpNA> <Numeric> <Expr>
-         |
+<Op_Equate>-> == | !=
 
-<ExprID> ::= <ID> <Expr>
-           | <Numeric> <Expr>
-           | <Bool> <Expr>
-***
-! ===================================================================
-! Operators
-! ===================================================================
-<Operator> ::= <Op Assign>
-             | <OpNA>
+<Op_Compare>-> < | > | <= | >=
 
-<OpNA> ::=  <Op or>
-| <Op And>
-| <Op Equate>
-| <Op Compare>
-| <Op Add>
-| <Op Mult>
-| <Op Not>
+<Op_Add>-> + | -
 
-<Op Assign> ::= '='
+<Op_Mult>-> * | / | %
 
-<Op Or>      ::= '||'
-
-<Op And>     ::= '&&'
-
-<Op Not>    ::= '!'
-
-<Op Equate>  ::= '=='
-               | '!='
-
-<Op Compare> ::= '<'
-               | '>'
-               | '<='
-               | '>='
-
-<Op Add>     ::= '+'
-               | '-'
-
-<Op Mult>    ::= '*'
-               | '/'
-               | '%'
-
-<ID> :: = <Letter><Word>
-
-<Word> ::= <Letter><Word>
-         | <Digit><Word>
-         |
-
-<Bool> ::= true
-         | false
-<Numeric> ::= <Digit><Numeric>
-          |
-
-
-<Digit> ::= "0"
-           | "1"
-           | "2"
-           | "3"
-           | "4"
-           | "5"
-           | "6"
-           | "7"
-           | "8"
-           | "9"
-
-<Letter> ::= "a"
-          | "b"
-          | "c"
-          | "d"
-          | "e"
-          | "f"
-          | "g"
-          | "h"
-          | "i"
-          | "j"
-          | "k"
-          | "l"
-          | "m"
-          | "n"
-          | "o"
-          | "p"
-          | "q"
-          | "r"
-          | "s"
-          | "t"
-          | "u"
-          | "v"
-          | "w"
-          | "x"
-          | "y"
-          | "z"
-          | "A"
-          | "B"
-          | "C"
-          | "D"
-          | "E"
-          | "F"
-          | "G"
-          | "H"
-          | "I"
-          | "J"
-          | "K"
-          | "L"
-          | "M"
-          | "N"
-          | "O"
-          | "P"
-          | "Q"
-          | "R"
-          | "S"
-          | "T"
-          | "U"
-          | "V"
-          | "W"
-          | "X"
-          | "Y"
-          | "Z"
+<Bool>-> true | false
