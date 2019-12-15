@@ -33,8 +33,8 @@ class Parser():
         for k in range(len(self.tabelaSimbolos)):
             if self.tabelaSimbolos[k][1] == lexema:
                 return k
-
-        return -1
+        print("Item "+lexema+" nao exite nesse escopo")
+        return None
 
     def gerartipo(self):
         chave=self.exprAtual[0]
@@ -401,18 +401,21 @@ class Parser():
                 self.expr_id()
 
 
-    def expr_id():
+    def expr_id(self):
         if self.match_token("BOOLEAN"):
+            self.exprAtual.append("BOOL")
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                 self.op_na()
                 self.expr()
-        elif self.match("NUMERO"):
+        elif self.match_token("NUMERO"):
+            self.exprAtual.append("INT")
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                 self.op_na()
                 self.expr()
-        elif self.match("ID"):
+        elif self.match_token("ID"):
+            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokens[self.tokenAtual].lexema)][2].upper())
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                 self.op_na()
