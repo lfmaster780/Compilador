@@ -29,14 +29,14 @@ class Parser():
         self.tokens = tokenlist
         self.decls()
 
-    def buscar(lexema):
+    def buscar(self,lexema):
         for k in range(len(self.tabelaSimbolos)):
             if self.tabelaSimbolos[k][1] == lexema:
                 return k
 
         return -1
 
-    def gerartipo():
+    def gerartipo(self):
         chave=self.exprAtual[0]
         resultado = "VOID"
         for k in range(0,len(self.exprAtual)-2,2):
@@ -226,14 +226,19 @@ class Parser():
     def stm(self):
         if self.match_token("ID"):
             if self.tokens[self.tokenAtual+1].tipo == "ATRIBUICAO":
-                index = buscar(self.tokens[self.tokenAtual].lexema)#$$
+                index = self.buscar(self.tokens[self.tokenAtual].lexema)#$$
                 self.tipoEsperado = self.tabelaSimbolos[index][2]
                 self.consumir()
                 if self.match_token("ATRIBUICAO"):
                     self.consumir()
                     self.exprAtual = [] #Inicio da expressao
                     self.expr()#################
-                    self.tipoAtual = gerartipo(self.exprAtual)
+                    #fun android return int(int a, int b){ print(a); a int; a = 10+5;}
+                    self.tipoAtual = self.gerartipo()
+                    if self.match_token("PONTOVIRGULA"):
+                        self.consumir()
+                    else:
+                        self.erro(["PONTOVIRGULA"])
                     if self.tipoEsperado != self.tipoAtual:
                         print("Erro Semantico")
                         print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
@@ -247,7 +252,7 @@ class Parser():
                 self.exprAtual = [] #Inicio da expressao
                 self.expr()
                 if self.match_token("PONTOVIRGULA"):
-                    self.tipoAtual = gerartipo(self.exprAtual)
+                    self.tipoAtual = self.gerartipo()
                     self.consumir()
                 else:
                     self.erro(["PONTOVIRGULA"])
@@ -259,7 +264,7 @@ class Parser():
                 self.tipoEsperado = "BOOL"
                 self.exprAtual = []
                 self.expr()#####
-                self.tipoAtual = gerartipo(self.exprAtual)
+                self.tipoAtual = self.gerartipo()
                 if self.tipoAtual != self.tipoEsperado:
                     print("Erro Semantico")
                     print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
@@ -280,7 +285,7 @@ class Parser():
                 self.tipoEsperado = "BOOL"
                 self.exprAtual = []
                 self.expr()#####
-                self.tipoAtual = gerartipo(self.exprAtual)
+                self.tipoAtual = self.gerartipo()
                 if self.tipoAtual != self.tipoEsperado:
                     print("Erro Semantico")
                     print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
@@ -331,7 +336,7 @@ class Parser():
             self.tipoEsperado = ""
             self.exprAtual = []
             self.expr()#####
-            self.tipoAtual = gerartipo(self.exprAtual)
+            self.tipoAtual = self.gerartipo()
             if self.tipoAtual != self.tipoEsperado:
                 print("Erro Semantico")
                 print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
@@ -381,6 +386,8 @@ class Parser():
                 if self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                     self.op_na()
                     self.expr()
+                elif self.match_token("PONTOVIRGULA"):
+                    return
                 else:
                     self.erro(["OPERADOR"])
             else:
@@ -388,7 +395,7 @@ class Parser():
 
         elif self.match_token("ID"):
             self.consumir()
-            self.exprAtual.append(self.tabelaSimbolos[buscar(self.tokenAtual.lexema)][2].upper())
+            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokenAtual.lexema)][2].upper())
             self.op_na()
             if not self.erroSintatico:
                 self.expr_id()
