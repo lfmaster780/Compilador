@@ -395,7 +395,7 @@ class Parser():
 
         elif self.match_token("ID"):
             self.consumir()
-            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokenAtual.lexema)][2].upper())
+            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokens[self.tokenAtual].lexema)][2].upper())
             self.op_na()
             if not self.erroSintatico:
                 self.expr_id()
