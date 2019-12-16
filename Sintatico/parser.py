@@ -24,6 +24,7 @@ class Parser():
         self.varfunc = []
         self.funcatual = ""
         self.funescopo = 0
+        self.returns = []
 
     def iniciar(self,tokenlist):
         self.erroSintatico = False
@@ -45,24 +46,34 @@ class Parser():
         print("Item "+lexema+" nao exite nesse escopo")
         return tipo
 
+    def tipoFunc(self,nome,tipo):
+        cont = 0
+
+        for k in range(len(self.returns)):
+            if self.returns[k][0] == self.funcatual:
+                cont+=1
+            if self.returns[k][0] == self.funcatual and self.returns[k][1] != tipo:
+                print("Erro Semantico","no RETURN em",nome)
+                print("Esperado:",tipo,"Obteve:",self.returns[k][1])
+                raise TypeError
+
+        if cont == 0 and tipo != "VOID":
+            print("Erro Semantico","ausencia de RETURN em",nome)
+            raise TypeError
+
     def gerartipo(self):
-        print(self.exprAtual)
         chave=self.exprAtual[0]
         resultado = "VOID"
         for k in range(0,len(self.exprAtual)-2,2):
-
             op = self.exprAtual[k+1]
             tipo2 = self.exprAtual[k+2]
-            print(k, chave, op, tipo2, chave == tipo2)
             if chave == tipo2:
                 if op == "OPINT":
-                    print("É INT")
                     resultado = "INT"
                 else:
                     resultado = "BOOL"
             else:
                 "INVALIDO"
-            print (resultado)
             chave = resultado
 
         return resultado
@@ -79,6 +90,26 @@ class Parser():
 
         print(self.tokenAtual)
         raise TypeError
+
+    def idValido(self,nome):
+        for k in range(len(self.tabelaSimbolos)):
+            if self.tabelaSimbolos[k][1] == nome and self.tabelaSimbolos[k][0] == "VARFUNC" and self.tabelaSimbolos[k][3] == self.funcatual:
+                print("Item "+nome+" ja existe nesse escopo como parametro")
+                return False
+
+            elif self.tabelaSimbolos[k][1] == nome and self.tabelaSimbolos[k][0] == "VAR":
+                print("Item "+nome+" ja existe nesse escopo")
+                return False
+
+        return True
+
+    def funValida(self,nome):
+        for k in range(len(self.tabelaSimbolos)):
+            if self.tabelaSimbolos[k][1] == nome and self.tabelaSimbolos[k][0] == "FUN":
+                print("Funcao "+nome+" ja existe")
+                return False
+
+        return True
 
     def type(self):
         if self.match_token("VOID") or self.match_token("INT") or self.match_token("BOOL"):
@@ -130,6 +161,8 @@ class Parser():
             self.funcatual = self.tokens[self.tokenAtual].lexema
             self.consumir()
             ###CHECAR SE EXITE FUN DO MSM NOME
+            if not self.funValida(lista[1]):
+                raise TypeError
             if self.match_token("RETURN"):
                 self.consumir()
                 if self.type():
@@ -151,14 +184,16 @@ class Parser():
 
         else:
             self.erro(["ID"])
+
         self.tabelaSimbolos.append(lista)
+        self.tipoFunc(lista[1],lista[2])
 
     def params(self):
         listaparams = []
         if self.match_token("RPAREN"):
             self.consumir()
             self.block()
-            print(self.funescopo)
+            #print(self.funescopo)
         elif self.typeID():
             listaparams.append(self.tokens[self.tokenAtual].tipo)
             self.param()
@@ -337,6 +372,11 @@ class Parser():
             if self.match_token("LPAREN"):
                 self.consumir()
                 if self.match_token("ID") or self.match_token("NUMERO"):
+                    if self.match_token("ID"):
+                        self.tipoEsperado = self.buscar(self.tokens[self.tokenAtual].lexema)
+                        if self.tipoEsperado == "VOID":
+                            print("Print Invalido",self.tokenAtual)
+                            raise TypeError
                     self.consumir()
                     if self.match_token("RPAREN"):
                         self.consumir()
@@ -353,6 +393,7 @@ class Parser():
 
         elif self.match_token("BREAK"):
             self.consumir()
+            print("BREAK fora de WHILE")
             if self.match_token("PONTOVIRGULA"):
                 self.consumir()
             else:
@@ -360,6 +401,7 @@ class Parser():
 
         elif self.match_token("CONTINUE"):
             self.consumir()
+            print("CONTINUE fora de WHILE")
             if self.match_token("PONTOVIRGULA"):
                 self.consumir()
             else:
@@ -367,14 +409,13 @@ class Parser():
 
         elif self.match_token("RETURN"):########
             self.consumir()
-            self.tipoEsperado = self.tipoFunc()
+            lista = []
+            lista.append(self.funcatual)
             self.exprAtual = []
             self.expr()#####
             self.tipoAtual = self.gerartipo()
-            if self.tipoAtual != self.tipoEsperado:
-                print("Erro Semantico")
-                print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
-                raise TypeError
+            lista.append(self.tipoAtual)
+            self.returns.append(lista)
             if self.match_token("PONTOVIRGULA"):
                 self.consumir()
             else:
@@ -403,7 +444,8 @@ class Parser():
             self.erro(["ID"])
         self.funescopo = self.escopoatual
         lista.append(self.escopos[self.escopoatual])
-        self.tabelaSimbolos.append(lista)
+        if self.idValido(lista[1]):
+            self.tabelaSimbolos.append(lista)
 
     def post_if(self):
         if self.match_token("ELSE"):

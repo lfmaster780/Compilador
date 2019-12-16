@@ -17,3 +17,4 @@ for k in range(len(parser.tabelaSimbolos)):
         print(parser.tabelaSimbolos[k][1], parser.tabelaSimbolos[k][-1].id)
 for k in range(len(parser.escopos)):
     print(parser.escopos[k].id, parser.escopos[k].escopomaior, parser.escopos[k].aberto)
+arquivo.close()

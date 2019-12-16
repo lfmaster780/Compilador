@@ -1,0 +1,13 @@
+fun android return void(int a, int b){
+  print(b);
+
+}
+
+fun main return int(int b){
+  a int;
+  a = 10 + 5;
+  if(a > 5)
+    a = a + 5 + 3 + 10;
+  return 10*10;
+  
+}
