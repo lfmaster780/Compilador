@@ -21,6 +21,9 @@ class Parser():
         self.tipoEsperado = ""
         self.tipoAtual = ""
         self.exprAtual = []
+        self.varfunc = []
+        self.funcatual = ""
+        self.funescopo = 0
 
     def iniciar(self,tokenlist):
         self.erroSintatico = False
@@ -30,25 +33,36 @@ class Parser():
         self.decls()
 
     def buscar(self,lexema):
+        tipo = "VOID"
         for k in range(len(self.tabelaSimbolos)):
-            if self.tabelaSimbolos[k][1] == lexema:
-                return k
+            if self.tabelaSimbolos[k][1] == lexema and self.tabelaSimbolos[k][0] == "VARFUNC":
+                if self.tabelaSimbolos[k][3] == self.funcatual:
+                    return self.tabelaSimbolos[k][2].upper()
+
+            elif self.tabelaSimbolos[k][1] == lexema and self.tabelaSimbolos[k][0] == "VAR":
+                if self.tabelaSimbolos[k][3].id == self.escopoatual:
+                    return self.tabelaSimbolos[k][2].upper()
         print("Item "+lexema+" nao exite nesse escopo")
-        return None
+        return tipo
 
     def gerartipo(self):
+        print(self.exprAtual)
         chave=self.exprAtual[0]
         resultado = "VOID"
         for k in range(0,len(self.exprAtual)-2,2):
+
             op = self.exprAtual[k+1]
             tipo2 = self.exprAtual[k+2]
+            print(k, chave, op, tipo2, chave == tipo2)
             if chave == tipo2:
                 if op == "OPINT":
+                    print("É INT")
                     resultado = "INT"
                 else:
                     resultado = "BOOL"
             else:
                 "INVALIDO"
+            print (resultado)
             chave = resultado
 
         return resultado
@@ -64,6 +78,7 @@ class Parser():
         self.erroSintatico = True
 
         print(self.tokenAtual)
+        raise TypeError
 
     def type(self):
         if self.match_token("VOID") or self.match_token("INT") or self.match_token("BOOL"):
@@ -112,8 +127,9 @@ class Parser():
             return
         if self.match_token("ID"):
             lista.append(self.tokens[self.tokenAtual].lexema)
+            self.funcatual = self.tokens[self.tokenAtual].lexema
             self.consumir()
-
+            ###CHECAR SE EXITE FUN DO MSM NOME
             if self.match_token("RETURN"):
                 self.consumir()
                 if self.type():
@@ -125,6 +141,8 @@ class Parser():
                     self.consumir()
                     listaparametros = self.params()
                     lista.append(listaparametros)
+                    lista.append(self.escopos[self.funescopo])
+                    self.funescopo = 0
                 else:
                     self.erro("LPAREN")
 
@@ -140,13 +158,22 @@ class Parser():
         if self.match_token("RPAREN"):
             self.consumir()
             self.block()
+            print(self.funescopo)
         elif self.typeID():
             listaparams.append(self.tokens[self.tokenAtual].tipo)
             self.param()
+            self.varfunc.append(listaparams[-1])
+            self.varfunc.append(self.funcatual)
             if self.match_token("VIRGULA"):
+                if(len(self.varfunc) > 0):
+                    self.tabelaSimbolos.append(self.varfunc)
+                    self.varfunc = []
                 self.consumir()
                 self.params()
             elif self.match_token("RPAREN"):
+                if(len(self.varfunc) > 0):
+                    self.tabelaSimbolos.append(self.varfunc)
+                    self.varfunc = []
                 self.params()
             else:
                 self.erro(["VIRGULA","RPAREN"])
@@ -156,8 +183,10 @@ class Parser():
 
     def param(self):
         if self.typeID():
+            self.varfunc.append("VARFUNC")
             self.consumir()
             if self.match_token("ID"):
+                self.varfunc.append(self.tokens[self.tokenAtual].lexema)
                 self.consumir()
             else:
                 self.erro(["ID"])
@@ -183,6 +212,8 @@ class Parser():
                     self.escopomax = self.escopomax+1
                     self.escopoatual = self.escopomax
             self.escopos.append(novoescopo)
+            if(self.funescopo == 0):
+                self.funescopo = self.escopoatual
             self.consumir()
             self.stm_list()
 
@@ -226,8 +257,11 @@ class Parser():
     def stm(self):
         if self.match_token("ID"):
             if self.tokens[self.tokenAtual+1].tipo == "ATRIBUICAO":
-                index = self.buscar(self.tokens[self.tokenAtual].lexema)#$$
-                self.tipoEsperado = self.tabelaSimbolos[index][2]
+                try:
+                    self.tipoEsperado = self.buscar(self.tokens[self.tokenAtual].lexema)#$$
+                except:
+                    return
+
                 self.consumir()
                 if self.match_token("ATRIBUICAO"):
                     self.consumir()
@@ -240,9 +274,9 @@ class Parser():
                     else:
                         self.erro(["PONTOVIRGULA"])
                     if self.tipoEsperado != self.tipoAtual:
-                        print("Erro Semantico")
+                        print("Erro Semantico",self.tokenAtual,self.tokens[self.tokenAtual+1].tipo)
                         print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
-                        self.erro([])
+                        raise TypeError
             elif self.tokens[self.tokenAtual+1].tipo == "INT" or self.tokens[self.tokenAtual+1].tipo == "BOOL":
                 self.var_decl()
             elif self.tokens[self.tokenAtual+1].tipo == "LPAREN":
@@ -268,7 +302,7 @@ class Parser():
                 if self.tipoAtual != self.tipoEsperado:
                     print("Erro Semantico")
                     print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
-                    self.erro([])
+                    raise TypeError
                 if self.match_token("RPAREN"):
                     self.consumir()
                     self.stm()
@@ -289,7 +323,7 @@ class Parser():
                 if self.tipoAtual != self.tipoEsperado:
                     print("Erro Semantico")
                     print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
-                    self.erro([])
+                    raise TypeError
                 if self.match_token("RPAREN"):
                     self.consumir()
                     self.stm()
@@ -333,14 +367,14 @@ class Parser():
 
         elif self.match_token("RETURN"):########
             self.consumir()
-            self.tipoEsperado = ""
+            self.tipoEsperado = self.tipoFunc()
             self.exprAtual = []
             self.expr()#####
             self.tipoAtual = self.gerartipo()
             if self.tipoAtual != self.tipoEsperado:
                 print("Erro Semantico")
                 print("Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
-                self.erro([])
+                raise TypeError
             if self.match_token("PONTOVIRGULA"):
                 self.consumir()
             else:
@@ -367,6 +401,7 @@ class Parser():
 
         else:
             self.erro(["ID"])
+        self.funescopo = self.escopoatual
         lista.append(self.escopos[self.escopoatual])
         self.tabelaSimbolos.append(lista)
 
@@ -394,8 +429,9 @@ class Parser():
                 self.erro(["NUMERO"])
 
         elif self.match_token("ID"):
+
+            self.exprAtual.append(self.buscar(self.tokens[self.tokenAtual].lexema))
             self.consumir()
-            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokens[self.tokenAtual].lexema)][2].upper())
             self.op_na()
             if not self.erroSintatico:
                 self.expr_id()
@@ -415,7 +451,7 @@ class Parser():
                 self.op_na()
                 self.expr()
         elif self.match_token("ID"):
-            self.exprAtual.append(self.tabelaSimbolos[self.buscar(self.tokens[self.tokenAtual].lexema)][2].upper())
+            self.exprAtual.append(self.buscar(self.tokens[self.tokenAtual].lexema))
             self.consumir()
             if self.match_token("ATRIBUICAO") or self.match_token("SOMA") or self.match_token("MULT") or self.match_token("RESTO") or self.match_token("SUB") or self.match_token("DIV") or self.match_token("NOT") or self.match_token("DIFERENTE") or self.match_token("IGUAL") or self.match_token("MENOR") or self.match_token("MENORIGUAL") or self.match_token("MAIOR") or self.match_token("MAIORIGUAL") or self.match_token("AND") or self.match_token("OR"):
                 self.op_na()
