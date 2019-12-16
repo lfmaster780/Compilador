@@ -5,9 +5,11 @@ fun android return void(int a, int b){
 
 fun main return int(int b){
   a int;
+  c bool;
   a = 10 + 5;
   if(a > 5)
     a = a + 5 + 3 + 10;
+  android(a,10);
   return 10*10;
-  
+
 }

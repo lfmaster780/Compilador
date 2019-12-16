@@ -25,6 +25,8 @@ class Parser():
         self.funcatual = ""
         self.funescopo = 0
         self.returns = []
+        self.paramAtual = []
+        self.chamadaAtual = ""
 
     def iniciar(self,tokenlist):
         self.erroSintatico = False
@@ -33,6 +35,14 @@ class Parser():
         self.tokens = tokenlist
         self.decls()
 
+    def funcP(self):
+        l = []
+        for k in range(len(self.tabelaSimbolos)):
+            if self.tabelaSimbolos[k][0] == "VARFUNC" and self.tabelaSimbolos[k][3] == self.chamadaAtual:
+                l.append(self.tabelaSimbolos[k][2])
+
+        return l
+        print("Item "+lexema+" nao exite nesse escopo")
     def buscar(self,lexema):
         tipo = "VOID"
         for k in range(len(self.tabelaSimbolos)):
@@ -271,23 +281,53 @@ class Parser():
             self.erro(["RBRACE","ID","WHILE","PRINT","LBRACE","RETURN","IF","BREAK","CONTINUE"])
 
     def paramC(self):
-        listaparams = []
-        if self.match_token("RPAREN"):
-            self.consumir()
+
         if self.match_token("ID"):
+            if self.paramAtual >= len(self.paramList):
+                print("Erro Semantico",self.tokenAtual, self.chamadaAtual)
+                print("Limite de argumentos excedido")
+                raise TypeError
+            else:
+                self.tipoEsperado = self.paramList[self.paramAtual]
+                self.paramAtual += 1
+            self.tipoAtual = self.buscar(self.tokens[self.tokenAtual].lexema)
             self.consumir()
-            self.paramC()
-        if self.match_token("VIRGULA"):
-            self.consumir()
-            self.paramC()
-        elif self.match_token("RPAREN"):
-            self.paramC()
+            if self.tipoEsperado != self.tipoAtual:
+                print("Erro Semantico",self.tokenAtual,self.chamadaAtual)
+                print("Argumento -> Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                raise TypeError
+
+            if self.match_token("VIRGULA"):
+                self.consumir()
+                if self.match_token("ID") or self.match_token("NUMERO"):
+                    self.paramC()
+                else:
+                    self.erro(["NUMERO","ID"])
         elif self.match_token("NUMERO"):
+            if self.paramAtual >= len(self.paramList):
+                print("Erro Semantico",self.tokenAtual, self.chamadaAtual)
+                print("Limite de argumentos excedido")
+                raise TypeError
+            else:
+                self.tipoEsperado = self.paramList[self.paramAtual]
+                self.paramAtual += 1
+            self.tipoAtual = "INT"
             self.consumir()
-            self.paramC()
+            if self.tipoEsperado != self.tipoAtual:
+                print("Erro Semantico",self.tokenAtual,self.chamadaAtual)
+                print("Argumento -> Esperado:",self.tipoEsperado,"Obteve:",self.tipoAtual)
+                raise TypeError
+
+            if self.match_token("VIRGULA"):
+                self.consumir()
+                if self.match_token("ID") or self.match_token("NUMERO"):
+                    self.paramC()
+                else:
+                    self.erro(["NUMERO","ID"])
+        elif self.match_token("RPAREN"):
+            return
         else:
-            self.erro(["VIRGULA","RPAREN","ID"])
-        return listaparams
+            self.erro(["NUMERO","RPAREN","ID"])
 
     def stm(self):
         if self.match_token("ID"):
@@ -314,9 +354,28 @@ class Parser():
                         raise TypeError
             elif self.tokens[self.tokenAtual+1].tipo == "INT" or self.tokens[self.tokenAtual+1].tipo == "BOOL":
                 self.var_decl()
+
+
             elif self.tokens[self.tokenAtual+1].tipo == "LPAREN":
+                self.paramAtual = 0
+                self.paramList = []
+                self.chamadaAtual = self.tokens[self.tokenAtual].lexema
+                self.paramList = self.funcP()
+                self.consumir()#ID
                 self.consumir()
                 self.paramC()
+                if self.match_token("RPAREN"):
+                    self.consumir()
+                    if self.paramAtual != len(self.paramList):
+                        print("Erro Semantico",self.tokenAtual, self.chamadaAtual)
+                        print("Esperado :",len(self.paramList),"Argumentos e Obteve:",self.paramAtual)
+                        raise TypeError
+                    if self.match_token("PONTOVIRGULA"):
+                        self.consumir()
+                    else:
+                        self.erro(["PONTOVIRGULA"])
+                else:
+                    self.erro(["RPAREN"])
             else:
                 self.exprAtual = [] #Inicio da expressao
                 self.expr()
