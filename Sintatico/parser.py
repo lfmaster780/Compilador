@@ -121,6 +121,14 @@ class Parser():
 
         return True
 
+    def funValida2(self,nome):
+        for k in range(len(self.tabelaSimbolos)):
+            if self.tabelaSimbolos[k][1] == nome and self.tabelaSimbolos[k][0] == "FUN":
+                return True
+
+        print("Funcao "+nome+" nao existe")
+        raise TypeError
+
     def type(self):
         if self.match_token("VOID") or self.match_token("INT") or self.match_token("BOOL"):
             return True
@@ -360,6 +368,7 @@ class Parser():
                 self.paramAtual = 0
                 self.paramList = []
                 self.chamadaAtual = self.tokens[self.tokenAtual].lexema
+                self.funValida2(self.chamadaAtual)
                 self.paramList = self.funcP()
                 self.consumir()#ID
                 self.consumir()
